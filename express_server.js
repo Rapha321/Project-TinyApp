@@ -10,6 +10,15 @@ var PORT = 8080; // default port 8080
 //This tells the Express app to use EJS as its templating engine
 app.set("view engine", "ejs")
 
+function generateRandomString() {
+  let randomString = "";
+  const possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  for (var i = 0; i <= 5; i++) {
+    randomString += possible[(Math.floor(Math.random() * possible.length))];
+  }
+  return randomString;
+}
+
 var urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
@@ -51,27 +60,17 @@ app.get('/_headers', function (req, res) {
 
 
 app.post("/urls", (req, res) => {
-
-
-  console.log(req.body);  // debug statement to see POST parameters
-
-  console.log(urlDatabase[generateRandomString] = req.body.longURL);
-  // TODO: Update the valurues in urlDatabase
-  res.send("Ok");         // Respond with 'Ok' (we will replace this)
+  console.log(req.body.longURL);  // debug statement to see POST parameters
+  let shortString = generateRandomString();
+  urlDatabase[shortString] = req.body.longURL;
+  res.redirect(`/urls/${shortString}`);         // Respond with 'Ok' (we will replace this)
 });
 
-function generateRandomString() {
-  let randomString = "";
-  const possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-  for (var i = 0; i <= 5; i++) {
-    randomString += possible[(Math.floor(Math.random() * possible.length))];
-  }
-  return randomString;
-}
+
 
 
 app.get("/u/:shortURL", (req, res) => {
-  // let longURL = ...
+  let longURL = urlDatabase[req.params.shortURL]
   res.redirect(longURL);
 });
 
