@@ -1,1 +1,26 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>TinyApp</title>
+</head>
+
+<body>
+  <% if (typeof(username) == "undefined" || !username) { %>
+
+    <form method="POST" action="/login">
+      <input name="username" value= "vanillaice" >
+      <input type="submit" value="Sign in">
+    </form>
+
+  <% } else { %>
+
+    username: <%= username %>
+    <form method="POST" action="/logout">
+      <input type="submit" value="Log out">
+    </form>
+
+  <% } %>
+
+</body>
+</html>
