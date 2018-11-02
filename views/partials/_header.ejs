@@ -6,21 +6,19 @@
 </head>
 
 <body>
-  <% if (typeof(username) == "undefined" || !username) { %>
 
-    <form method="POST" action="/login">
-      <input name="username" value= "vanillaice" >
-      <input type="submit" value="Sign in">
-    </form>
 
-  <% } else { %>
 
-    username: <%= username %>
-    <form method="POST" action="/logout">
-      <input type="submit" value="Log out">
-    </form>
+  <p>Login here: <a href='/login'>login</a></p>
 
-  <% } %>
+  <p>Register here: <a href='/register'>Register</a></p>
+
+
+  <h4> User: users['user_id'] </h4>
+  <form method="POST" action="/logout">
+     <input type="submit" value="logout">
+  </form>
+
 
 </body>
 </html>
