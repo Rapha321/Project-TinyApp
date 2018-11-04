@@ -14,9 +14,10 @@
     <% for (let eachURL in urls) { %>
     <li>
       <form method="POST" action="/urls/<%= eachURL %>/delete">
-        <%= eachURL %> : <%= urls[eachURL] %>
-         <a href="urls/<%= eachURL %>">Edit</a>
+        <%= eachURL %> : <%= urls[eachURL].longURL %>,  <%= urls[eachURL].user_id %>
+         <a href="urls/<%= [eachURL].longURL %>">Edit</a>
         <input type="submit" value="Delete">
+
       </form>
     </li>
     <% }; %>

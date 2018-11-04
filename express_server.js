@@ -2,25 +2,38 @@ var express = require("express");
 var app = express();
 const bodyParser = require("body-parser");
 var cookieParser = require('cookie-parser')
+var cookieSession = require('cookie-session')
+const bcrypt = require('bcrypt');
+
 
 
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(cookieParser())
 
+app.use(cookieSession({
+  name: 'session',
+  keys: ['mysecretkey'],
+
+  // Cookie Options
+  maxAge: 24 * 60 * 60 * 1000 // 24 hours
+}))
+
+app.use(function (req, res, next) {
+  req.session.user_id = 'session';
+  req.sessionOptions.maxAge = req.session.maxAge || req.sessionOptions.maxAge
+  next()
+})
+
+
 
 var PORT = 8080; // default port 8080
-// app.listen(8080)
 
 //This tells the Express app to use EJS as its templating engine
 app.set("view engine", "ejs")
 
 // Parse Cookie header and populate req.cookies with an object keyed by the cookie names. Optionally you may enable signed cookie support by passing a secret string, which assigns req.secret so it may be used by other middleware.
 app.get('/', function (req, res) {
-  // Cookies that have not been signed
   console.log('Cookies: ', req.cookies)
-
-  // Cookies that have been signed
-  // console.log('Signed Cookies: ', req.signedCookies)
 })
 
 
@@ -46,51 +59,38 @@ function generateRandomID() {
 }
 
 
+// Database of URLs
 var urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
+  "b2xVn2": {longURL: "http://www.lighthouselabs.ca", user_id: "userRandomID"},
+  "9sm5xK": {longURL: "http://www.google.com", user_id: "user2RandomID"}
 };
 
 
+// Database of users
 const users = {
   "userRandomID": {
     id: "userRandomID",
     email: "user@example.com",
-    password: "purple-monkey-dinosaur"
+    password: "123"
   },
  "user2RandomID": {
     id: "user2RandomID",
     email: "user2@example.com",
-    password: "dishwasher-funk"
+    password: "123"
   }
 }
 
-app.post("/register", (req, res) => {
-  const user_id = generateRandomID();
-  users[user_id] = {id: user_id, email: req.body.email, password: req.body.password}
-
-  if (req.body.email === "" || req.body.password === "") {
-    console.log(`400 - Please insert email and password`);
-  }
-
-  for (let key in users) {
-    if (users[key].email === req.body.email) {
-      console.log(`400 – Email already exist`);
-    }
-  }
-
-  res.cookie('user_id', user_id)
-  res.redirect('/urls');
-});
+// Check if user is registered
+function validUser (user_id) {
+  return users[user_id];
+}
 
 
 app.get("/urls", (req, res) => {
-
   let templateVars = {
-    username: users[req.cookies['user_id']],  // abc123
+    user_id: [req.cookies['user_id']],
     urls: urlDatabase
   };
-  // console.log("templateVars: ", templateVars)
   res.render("urls_index", templateVars);
 });
 
@@ -116,7 +116,7 @@ app.get("/login", (req, res) => {
 
 
 app.get("/urls/:id", (req, res) => {
-  let templateVars = { shortURL: req.params.id, longURL: urlDatabase[req.params.id]};
+  let templateVars = {shortURL: req.params.id, longURL: urlDatabase[req.params.id]};
   res.render("urls_show", templateVars);
 });
 
@@ -162,37 +162,64 @@ app.post('/urls/:id/delete', function (req, res) {
 });
 
 
+// when Edit button is clicked
 app.post('/urls/:id/update', function (req , res ) {
-  urlDatabase[req.params.id] = req.body.newUrl;
+  // const updateLongURL = Object.values(urlDatabase).find()
+  for (let long of urlDatabase) {
+    long[longURL] = req.body.newUrl;
+  }
+  return long[longURL];
   res.redirect('/urls');
 });
 
 
-app.post("/login", (req, res) => {
-  res.cookie('user_id', users['user_id'])
-  res.redirect('/urls');
-});
+// validating registration + setting cookie
+app.post("/register", (req, res) => {
+  const user_id = generateRandomID();
+  users[user_id] = {id: user_id, email: req.body.email, password: req.body.password}
 
+  if (req.body.email === "" || req.body.password === "") {
+    console.log(`400 - Email and password should not be blank`);
+  }
 
-app.post("/logout", (req, res) => {
   for (let key in users) {
-    if (users[key].email !== req.body.email) {
-      console.log(`403`);
-    }
-    if (users[key].email === req.body.email && users[key].password !== req.body.password) {
-      console.log(`403`);
-    }
-    else {
-       res.clearCookie('user_id', users[user_id]);
+    if (users[key].email === req.body.email) {
+      console.log(`400 – Email already exist`);
     }
   }
-  res.redirect('/');
-});
 
-
-app.get("/register", (req, res) => {
+  res.cookie('user_id', user_id)
   res.redirect('/urls');
 });
+
+//validating login
+app.post("/login", (req, res) => {
+  const password = bcrypt.hashSync(req.body.password, 10);
+  // const usersData = Object.values(users).find(user =>
+
+  for (let usersKey in users) {
+    if (users[usersKey].email === req.body.email && users[usersKey].password === password) {
+      res.cookie('user_id', users['user_id']);
+    } else {
+      console.log(`403`);
+    }
+  }
+  res.redirect('/urls');
+});
+
+
+app.get("/logout", (req, res) => {
+  res.clearCookie('user_id', users['user_id']);
+  res.redirect('/urls');
+});
+
+
+
+
+
+
+
+
 
 
 

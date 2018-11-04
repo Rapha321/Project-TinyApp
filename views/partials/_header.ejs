@@ -7,18 +7,21 @@
 
 <body>
 
+  <p>
+    Welcome back: <a href='/login'>Login!</a>
+  </p>
 
+  <p>
+    Don't have an account? No problem!: <a href='/register'>Register for free!</a>
+  </p>
 
-  <p>Login here: <a href='/login'>login</a></p>
+  <h4>
+    User: <%= user_id %>
+  </h4>
 
-  <p>Register here: <a href='/register'>Register</a></p>
-
-
-  <h4> User: users['user_id'] </h4>
-  <form method="POST" action="/logout">
-     <input type="submit" value="logout">
+  <form method="GET" action="/logout">
+     <input type="submit" value="Logout">
   </form>
-
 
 </body>
 </html>
